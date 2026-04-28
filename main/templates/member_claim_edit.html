@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>AeroMiles - Edit Klaim</title>
+{% endblock meta %}
+
+{% block content %}
+<div class="min-h-screen bg-background text-on-background">
+  <main class="max-w-[1080px] mx-auto p-gutter">
+    <div class="mb-xl">
+      <a href="{% url 'main:member_claims' %}" class="font-label-caps text-label-caps text-secondary uppercase">&larr; Kembali ke Riwayat Klaim</a>
+      <h1 class="font-h2 text-h2 text-primary mt-sm">Edit Klaim #{{ claim.id }}</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Klaim hanya dapat diubah selama status masih Menunggu.</p>
+    </div>
+
+    {% if messages %}
+      <div class="mb-md space-y-2">
+        {% for message in messages %}
+          <div class="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+      <div class="lg:col-span-2 bg-surface-container-lowest border border-surface-variant p-md">
+        <h2 class="font-h3 text-h3 text-primary mb-md">Detail Penerbangan</h2>
+        <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {% csrf_token %}
+          {% if form.non_field_errors %}<div class="md:col-span-2 border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ form.non_field_errors }}</div>{% endif %}
+          {% for field in form %}
+            <div class="{% if field.name == 'nomor_tiket' %}md:col-span-2{% endif %}">
+              <label class="block font-label-caps text-label-caps text-on-surface-variant uppercase mb-xs" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% for error in field.errors %}<p class="font-body-sm text-body-sm text-error mt-1">{{ error }}</p>{% endfor %}
+            </div>
+          {% endfor %}
+          <div class="md:col-span-2 pt-6 border-t border-surface-variant flex justify-end gap-4">
+            <a href="{% url 'main:member_claims' %}" class="px-6 py-3 font-body-md font-medium text-on-surface-variant border border-outline-variant hover:bg-surface">Batal</a>
+            <button class="px-6 py-3 font-body-md font-medium text-on-secondary bg-secondary border border-secondary hover:opacity-90" type="submit">Simpan Perubahan</button>
+          </div>
+        </form>
+      </div>
+      <aside class="bg-surface-container-low border border-surface-variant p-md h-fit">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">info</span>
+          <div>
+            <h3 class="font-h3 text-body-lg text-primary mb-1">Ketentuan Klaim</h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">Perubahan tidak tersedia setelah klaim disetujui atau ditolak oleh staf.</p>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+</div>
+{% endblock content %}

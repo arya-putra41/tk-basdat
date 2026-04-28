@@ -1,5 +1,7 @@
+from datetime import date
+
 from django.db import models
-from django.contrib.auth.models import AbstractUser    
+from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 
 # Create your models here.
@@ -10,6 +12,14 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError("Email is required")
         email = self.normalize_email(email)
+        extra_fields.setdefault("role", "member")
+        extra_fields.setdefault("salutation", "Mr.")
+        extra_fields.setdefault("first_mid_name", "")
+        extra_fields.setdefault("last_name", "")
+        extra_fields.setdefault("country_code", "+62")
+        extra_fields.setdefault("mobile_number", "")
+        extra_fields.setdefault("tanggal_lahir", date(2000, 1, 1))
+        extra_fields.setdefault("kewarganegaraan", "Indonesia")
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save()
@@ -18,6 +28,7 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('role', 'staff')
         return self.create_user(email, password, **extra_fields)
 
 class User(AbstractUser):
