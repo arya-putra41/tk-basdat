@@ -48,6 +48,25 @@ def get_member(email):
         return _dict_fetchone(cursor)
 
 
+def get_preview_member():
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT m.email, m.nomor_member, m.award_miles, m.total_miles, m.id_tier,
+                   p.first_mid_name, p.last_name
+            FROM member m
+            JOIN pengguna p ON p.email = m.email
+            ORDER BY (
+                SELECT COUNT(*)
+                FROM claim_missing_miles c
+                WHERE c.email_member = m.email
+            ) DESC, m.email
+            LIMIT 1
+            """
+        )
+        return _dict_fetchone(cursor)
+
+
 def get_staff(email):
     with connection.cursor() as cursor:
         cursor.execute(
@@ -58,6 +77,20 @@ def get_staff(email):
             WHERE s.email = %s
             """,
             [email],
+        )
+        return _dict_fetchone(cursor)
+
+
+def get_preview_staff():
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT s.email, s.id_staf, s.kode_maskapai, p.first_mid_name, p.last_name
+            FROM staf s
+            JOIN pengguna p ON p.email = s.email
+            ORDER BY s.email
+            LIMIT 1
+            """
         )
         return _dict_fetchone(cursor)
 

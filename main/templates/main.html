@@ -1,46 +1,79 @@
 {% extends 'base.html' %}
 
 {% block meta %}
-<title>Welcome to AeroMiles</title>
+<title>AeroMiles</title>
 {% endblock meta %}
 
 {% block content %}
-{% include 'navbar.html' %}
-<div class="bg-slate-50 w-full pt-24 min-h-screen">
-    <main class="mx-auto max-w-5xl px-6">
-        <div class="mb-8">
-            <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">AeroMiles</h1>
-            <p class="mt-2 text-slate-600">Fitur yang sudah terhubung ke DDL AeroMiles untuk klaim missing miles dan transfer miles.</p>
+<div class="min-h-screen bg-slate-50 text-slate-900 antialiased">
+  <header class="border-b border-slate-200 bg-white/85 backdrop-blur-md">
+    <div class="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-6 md:px-8">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-600 text-white">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">flight_takeoff</span>
         </div>
-
-        {% if messages %}
-            <div class="mb-6 space-y-2">
-                {% for message in messages %}
-                    <div class="rounded border px-4 py-3 text-sm {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-red-200 bg-red-50 text-red-800{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
+        <div>
+          <h1 class="text-xl font-extrabold tracking-tight text-slate-900">AeroMiles</h1>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Precision Travel</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        {% if user.is_authenticated %}
+          <a class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50" href="{{ logout_url }}">Logout</a>
+        {% else %}
+          <a class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50" href="{% url 'main:login' %}">Login</a>
         {% endif %}
+      </div>
+    </div>
+  </header>
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <a href="{% url 'main:member_claims' %}" class="rounded border border-slate-200 bg-white p-6 shadow-sm hover:bg-slate-100">
-                <div class="text-xs font-bold uppercase tracking-wide text-slate-500">Member</div>
-                <h2 class="mt-2 text-xl font-bold text-slate-900">Klaim Missing Miles</h2>
-                <p class="mt-2 text-sm text-slate-600">List, tambah, edit, dan batalkan klaim yang masih Menunggu.</p>
-            </a>
-            <a href="{% url 'main:staff_claims' %}" class="rounded border border-slate-200 bg-white p-6 shadow-sm hover:bg-slate-100">
-                <div class="text-xs font-bold uppercase tracking-wide text-slate-500">Staf</div>
-                <h2 class="mt-2 text-xl font-bold text-slate-900">Kelola Klaim</h2>
-                <p class="mt-2 text-sm text-slate-600">Review klaim semua member, setujui, atau tolak.</p>
-            </a>
-            <a href="{% url 'main:member_transfer_miles' %}" class="rounded border border-slate-200 bg-white p-6 shadow-sm hover:bg-slate-100">
-                <div class="text-xs font-bold uppercase tracking-wide text-slate-500">Member</div>
-                <h2 class="mt-2 text-xl font-bold text-slate-900">Transfer Miles</h2>
-                <p class="mt-2 text-sm text-slate-600">Kirim miles ke member lain dan lihat riwayat kirim/terima.</p>
-            </a>
-        </div>
-    </main>
+  <main class="mx-auto w-full max-w-[1280px] space-y-10 p-6 md:p-8">
+    <section class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div class="rounded-xl border border-slate-200 bg-white p-8 lg:col-span-2">
+        <span class="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-700">AeroMiles Portal</span>
+        <h2 class="mt-5 max-w-2xl text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">Operasi klaim dan transfer miles dalam satu tampilan.</h2>
+        <p class="mt-4 max-w-2xl text-base leading-7 text-slate-500">Fitur ini terhubung ke DDL AeroMiles untuk klaim missing miles, review staf, dan transfer miles member.</p>
+      </div>
+      <div class="rounded-xl bg-slate-900 p-8 text-white">
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Status</p>
+        <p class="mt-3 text-3xl font-extrabold text-amber-400">{% if is_preview %}Preview{% else %}Live{% endif %}</p>
+        <p class="mt-4 text-sm leading-6 text-slate-300">Gunakan kartu di bawah untuk masuk ke modul yang sedang dikerjakan.</p>
+      </div>
+    </section>
+
+    {% if messages %}
+      <div class="space-y-2">
+        {% for message in messages %}
+          <div class="rounded-xl border px-4 py-3 text-sm font-medium {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-red-200 bg-red-50 text-red-800{% endif %}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <a href="{{ member_claims_url }}" class="group rounded-xl border border-slate-200 bg-white p-6 transition-all hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-lg hover:shadow-slate-200/60">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-700"><span class="material-symbols-outlined">verified</span></div>
+        <p class="mt-6 text-xs font-bold uppercase tracking-wider text-slate-500">Member</p>
+        <h3 class="mt-2 text-xl font-extrabold text-slate-900">Klaim Missing Miles</h3>
+        <p class="mt-3 text-sm leading-6 text-slate-500">List, tambah, edit, dan batalkan klaim yang masih Menunggu.</p>
+        <span class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-amber-700">Buka Modul <span class="material-symbols-outlined text-lg transition-transform group-hover:translate-x-1">arrow_forward</span></span>
+      </a>
+
+      <a href="{{ staff_claims_url }}" class="group rounded-xl border border-slate-200 bg-white p-6 transition-all hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-lg hover:shadow-slate-200/60">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-900"><span class="material-symbols-outlined">assignment</span></div>
+        <p class="mt-6 text-xs font-bold uppercase tracking-wider text-slate-500">Staf</p>
+        <h3 class="mt-2 text-xl font-extrabold text-slate-900">Kelola Klaim</h3>
+        <p class="mt-3 text-sm leading-6 text-slate-500">Review antrean klaim semua member, setujui, atau tolak.</p>
+        <span class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-amber-700">Buka Modul <span class="material-symbols-outlined text-lg transition-transform group-hover:translate-x-1">arrow_forward</span></span>
+      </a>
+
+      <a href="{{ member_transfer_miles_url }}" class="group rounded-xl border border-slate-200 bg-white p-6 transition-all hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-lg hover:shadow-slate-200/60">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><span class="material-symbols-outlined">swap_horiz</span></div>
+        <p class="mt-6 text-xs font-bold uppercase tracking-wider text-slate-500">Member</p>
+        <h3 class="mt-2 text-xl font-extrabold text-slate-900">Transfer Miles</h3>
+        <p class="mt-3 text-sm leading-6 text-slate-500">Kirim miles ke member lain dan lihat riwayat kirim/terima.</p>
+        <span class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-amber-700">Buka Modul <span class="material-symbols-outlined text-lg transition-transform group-hover:translate-x-1">arrow_forward</span></span>
+      </a>
+    </section>
+  </main>
 </div>
-
 {% endblock content %}

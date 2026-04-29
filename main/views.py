@@ -15,7 +15,27 @@ from . import aeromiles_services as services
 # Create your views here.
 
 def show_main(request):
-    return render(request, 'main.html')
+    return render(request, 'main.html', _nav_context())
+
+
+def _nav_context(is_preview=False):
+    if is_preview:
+        return {
+            "is_preview": True,
+            "home_url": reverse("main:preview_index"),
+            "member_claims_url": reverse("main:preview_member_claims"),
+            "member_transfer_miles_url": reverse("main:preview_member_transfer_miles"),
+            "staff_claims_url": reverse("main:preview_staff_claims"),
+            "logout_url": reverse("main:login"),
+        }
+    return {
+        "is_preview": False,
+        "home_url": reverse("main:show_main"),
+        "member_claims_url": reverse("main:member_claims"),
+        "member_transfer_miles_url": reverse("main:member_transfer_miles"),
+        "staff_claims_url": reverse("main:staff_claims"),
+        "logout_url": reverse("main:logout"),
+    }
 
 
 def _current_email(request):
@@ -69,6 +89,51 @@ def _claim_form(data=None, initial=None):
     )
 
 
+def _empty_claim_summary():
+    return {"Menunggu": 0, "Disetujui": 0, "Ditolak": 0}
+
+
+def _member_claims_context(email, selected_status=None, form=None, is_preview=False):
+    member = services.get_member(email) if email else None
+    context = {
+        "member": member,
+        "member_name": services.full_name(member) or "Preview Member",
+        "summary": services.get_claim_summary(email) if email else _empty_claim_summary(),
+        "claims": services.list_member_claims(email, selected_status) if email else [],
+        "selected_status": selected_status,
+        "form": form or _claim_form(),
+    }
+    context.update(_nav_context(is_preview))
+    return context
+
+
+def _staff_claims_context(selected_status=None, selected_maskapai=None, staff=None, is_preview=False):
+    context = {
+        "staff": staff,
+        "staff_name": services.full_name(staff) or "Preview Staff",
+        "claims": services.list_staff_claims(selected_status, selected_maskapai),
+        "pending_count": services.count_pending_claims(),
+        "selected_status": selected_status,
+        "selected_maskapai": selected_maskapai,
+        "maskapai_choices": services.list_maskapai_choices(),
+    }
+    context.update(_nav_context(is_preview))
+    return context
+
+
+def _member_transfer_context(email, transfer_type=None, form=None, is_preview=False):
+    member = services.get_member(email) if email else None
+    context = {
+        "member": member,
+        "member_name": services.full_name(member) or "Preview Member",
+        "form": form or TransferMilesForm(),
+        "transfers": services.list_transfers(email, transfer_type) if email else [],
+        "selected_type": transfer_type,
+    }
+    context.update(_nav_context(is_preview))
+    return context
+
+
 @member_required
 def member_claims(request):
     email = _current_email(request)
@@ -84,15 +149,7 @@ def member_claims(request):
             except services.DomainError as exc:
                 messages.error(request, exc.message)
 
-    context = {
-        "member": services.get_member(email),
-        "member_name": services.full_name(services.get_member(email)),
-        "summary": services.get_claim_summary(email),
-        "claims": services.list_member_claims(email, selected_status),
-        "selected_status": selected_status,
-        "form": form,
-    }
-    return render(request, "member_claims.html", context)
+    return render(request, "member_claims.html", _member_claims_context(email, selected_status, form))
 
 
 @member_required
@@ -115,7 +172,9 @@ def member_claim_edit(request, claim_id):
         except services.DomainError as exc:
             messages.error(request, exc.message)
 
-    return render(request, "member_claim_edit.html", {"form": form, "claim": claim})
+    context = {"form": form, "claim": claim}
+    context.update(_nav_context())
+    return render(request, "member_claim_edit.html", context)
 
 
 @member_required
@@ -133,16 +192,11 @@ def member_claim_cancel(request, claim_id):
 def staff_claims(request):
     selected_status = request.GET.get("status") or None
     selected_maskapai = request.GET.get("maskapai") or None
-    claims = services.list_staff_claims(selected_status, selected_maskapai)
-    context = {
-        "staff": services.get_staff(_current_email(request)),
-        "staff_name": services.full_name(services.get_staff(_current_email(request))),
-        "claims": claims,
-        "pending_count": services.count_pending_claims(),
-        "selected_status": selected_status,
-        "selected_maskapai": selected_maskapai,
-        "maskapai_choices": services.list_maskapai_choices(),
-    }
+    context = _staff_claims_context(
+        selected_status,
+        selected_maskapai,
+        services.get_staff(_current_email(request)),
+    )
     return render(request, "staff_claims.html", context)
 
 
@@ -184,14 +238,57 @@ def member_transfer_miles(request):
             messages.error(request, exc.message)
 
     transfer_type = request.GET.get("tipe") or None
-    context = {
-        "member": services.get_member(email),
-        "member_name": services.full_name(services.get_member(email)),
-        "form": form,
-        "transfers": services.list_transfers(email, transfer_type),
-        "selected_type": transfer_type,
-    }
-    return render(request, "member_transfer_miles.html", context)
+    return render(request, "member_transfer_miles.html", _member_transfer_context(email, transfer_type, form))
+
+
+def preview_index(request):
+    context = _nav_context(is_preview=True)
+    return render(request, "main.html", context)
+
+
+def preview_member_claims(request):
+    member = services.get_preview_member()
+    selected_status = request.GET.get("status") or None
+    return render(
+        request,
+        "member_claims.html",
+        _member_claims_context(member["email"] if member else None, selected_status, is_preview=True),
+    )
+
+
+def preview_member_claim_edit(request, claim_id):
+    member = services.get_preview_member()
+    email = member["email"] if member else None
+    claim = services.get_member_claim(email, claim_id) if email else None
+    form = _claim_form(initial=claim)
+    context = {"form": form, "claim": claim or {"id": claim_id}}
+    context.update(_nav_context(is_preview=True))
+    return render(request, "member_claim_edit.html", context)
+
+
+def preview_member_transfer_miles(request):
+    member = services.get_preview_member()
+    transfer_type = request.GET.get("tipe") or None
+    return render(
+        request,
+        "member_transfer_miles.html",
+        _member_transfer_context(member["email"] if member else None, transfer_type, is_preview=True),
+    )
+
+
+def preview_staff_claims(request):
+    selected_status = request.GET.get("status") or None
+    selected_maskapai = request.GET.get("maskapai") or None
+    return render(
+        request,
+        "staff_claims.html",
+        _staff_claims_context(
+            selected_status,
+            selected_maskapai,
+            services.get_preview_staff(),
+            is_preview=True,
+        ),
+    )
 
 # Registrasi user
 def register(request):

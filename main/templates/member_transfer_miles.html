@@ -5,97 +5,141 @@
 {% endblock meta %}
 
 {% block content %}
-<div class="bg-surface text-on-surface font-body-md min-h-screen md:flex antialiased">
-  <nav class="hidden md:flex h-screen w-64 border-r border-slate-800 flex-col bg-slate-900 fixed left-0 top-0 p-4 z-20">
-    <div class="mb-8 px-4 pb-4 border-b border-slate-800">
-      <a href="{% url 'main:show_main' %}" class="text-xl font-bold tracking-widest text-white uppercase">AeroMiles</a>
-      <p class="text-sm tracking-tight font-medium text-slate-400 mt-1">Executive Loyalty</p>
-    </div>
-    <ul class="flex-1 space-y-1">
-      <li><a class="flex items-center px-4 py-3 text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/30" href="{% url 'main:show_main' %}"><span class="material-symbols-outlined mr-3">dashboard</span>Dashboard</a></li>
-      <li><a class="flex items-center px-4 py-3 text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/30" href="{% url 'main:member_claims' %}"><span class="material-symbols-outlined mr-3">flight_takeoff</span>Klaim</a></li>
-      <li><a class="flex items-center px-4 py-3 text-sm font-medium text-amber-500 bg-slate-800/50 border-r-4 border-amber-500" href="{% url 'main:member_transfer_miles' %}"><span class="material-symbols-outlined mr-3" style="font-variation-settings: 'FILL' 1;">swap_horiz</span>Transfer</a></li>
-    </ul>
-    <div class="pt-4 border-t border-slate-800">
-      <a class="flex items-center px-4 py-3 text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/30" href="{% url 'main:logout' %}"><span class="material-symbols-outlined mr-3">logout</span>Keluar</a>
-    </div>
-  </nav>
-
-  <main class="flex-1 md:ml-64 flex flex-col min-h-screen">
-    <header class="w-full h-16 border-b border-slate-200 bg-white flex items-center justify-between px-6 md:px-8 sticky top-0 z-10">
+<div class="min-h-screen bg-slate-50 text-slate-900 antialiased md:flex">
+  <aside class="hidden md:flex fixed left-0 top-0 z-40 h-screen w-64 flex-col border-r border-slate-200 bg-white">
+    <div class="flex items-center gap-3 p-6">
+      <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-600 text-white">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">flight_takeoff</span>
+      </div>
       <div>
-        <h1 class="font-headline font-bold text-2xl text-tertiary-container">Transfer Miles</h1>
-        <p class="text-xs text-on-surface-variant hidden sm:block">Kirim award miles ke member lain.</p>
+        <a href="{{ home_url }}" class="text-xl font-extrabold leading-tight tracking-tight text-slate-900">AeroMiles</a>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Precision Travel</p>
+      </div>
+    </div>
+
+    <nav class="mt-4 flex-1 px-2">
+      <a class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-900" href="{{ home_url }}"><span class="material-symbols-outlined">home</span>Beranda</a>
+      <a class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-900" href="{{ member_claims_url }}"><span class="material-symbols-outlined">verified</span>Klaim</a>
+      <a class="flex items-center gap-3 border-r-4 border-amber-600 bg-amber-50/70 px-4 py-3 text-sm font-bold text-amber-700 transition-all" href="{{ member_transfer_miles_url }}"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">swap_horiz</span>Transfer Miles</a>
+      <a class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-500 transition-all hover:bg-slate-50 hover:text-slate-900" href="#"><span class="material-symbols-outlined">card_giftcard</span>Hadiah</a>
+    </nav>
+
+    <div class="border-t border-slate-100 p-4">
+      <div class="rounded-xl bg-slate-900 p-4 text-white">
+        <p class="text-xs font-semibold text-slate-400">Award Miles</p>
+        <p class="mt-1 text-2xl font-extrabold text-amber-400">{{ member.award_miles|default:"0" }}</p>
+        <a class="mt-4 flex items-center gap-2 text-xs font-bold text-slate-300 hover:text-white" href="{{ logout_url }}"><span class="material-symbols-outlined text-sm">logout</span>Keluar</a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="min-h-screen min-w-0 flex-1 md:ml-64">
+    <header class="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/85 px-6 backdrop-blur-md md:px-8">
+      <div>
+        <h1 class="text-xl font-extrabold tracking-tight text-slate-900 md:text-2xl">Transfer Miles</h1>
+        <p class="hidden text-xs font-medium text-slate-500 sm:block">Kirim award miles ke sesama member AeroMiles.</p>
       </div>
       <div class="text-right">
-        <div class="font-label-caps text-label-caps text-on-surface-variant uppercase">Saldo Award Miles</div>
-        <div class="font-h3 text-h3 text-tertiary-container">{{ member.award_miles }}</div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Saldo Award Miles</p>
+        <p class="text-lg font-extrabold text-amber-700">{{ member.award_miles|default:"0" }}</p>
       </div>
     </header>
 
-    <div class="flex-1 p-6 md:p-8 max-w-container-max mx-auto w-full">
+    <div class="mx-auto w-full max-w-[100vw] space-y-8 p-6 md:p-8 xl:max-w-[1280px]">
       {% if messages %}
-        <div class="mb-6 space-y-2">
+        <div class="space-y-2">
           {% for message in messages %}
-            <div class="border px-4 py-3 text-sm {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-red-200 bg-red-50 text-red-800{% endif %}">{{ message }}</div>
+            <div class="rounded-xl border px-4 py-3 text-sm font-medium {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-red-200 bg-red-50 text-red-800{% endif %}">{{ message }}</div>
           {% endfor %}
         </div>
       {% endif %}
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <aside class="lg:col-span-4">
-          <div class="bg-surface-container-lowest border border-outline-variant p-6">
-            <div class="flex items-center gap-3 mb-6">
-              <div class="w-10 h-10 bg-tertiary-container text-on-tertiary flex items-center justify-center"><span class="material-symbols-outlined">send</span></div>
+      <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="rounded-xl border border-slate-200 bg-white p-6">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Award Miles</p>
+          <p class="mt-3 text-3xl font-extrabold text-slate-900">{{ member.award_miles|default:"0" }}</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-white p-6">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Miles</p>
+          <p class="mt-3 text-3xl font-extrabold text-slate-900">{{ member.total_miles|default:"0" }}</p>
+        </div>
+        <div class="rounded-xl border border-slate-200 bg-slate-900 p-6 text-white">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Tier</p>
+          <p class="mt-3 text-3xl font-extrabold text-amber-400">{{ member.id_tier|default:"Member" }}</p>
+        </div>
+      </section>
+
+      <div class="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-12">
+        <aside class="min-w-0 lg:col-span-4">
+          <div class="rounded-xl border border-slate-200 bg-white p-6">
+            <div class="mb-6 flex items-start gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white"><span class="material-symbols-outlined">send</span></div>
               <div>
-                <h2 class="font-h3 text-h3 text-tertiary-container">Transfer Baru</h2>
-                <p class="text-sm text-on-surface-variant">Operasi saldo dilakukan atomik di database.</p>
+                <h2 class="text-lg font-extrabold text-slate-900">Transfer Baru</h2>
+                <p class="mt-1 text-sm text-slate-500">Saldo berpindah atomik di database.</p>
               </div>
             </div>
             <form method="post" class="space-y-4">
               {% csrf_token %}
               {% for field in form %}
                 <div>
-                  <label class="block font-label-caps text-label-caps text-on-surface-variant uppercase mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  <label class="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-500" for="{{ field.id_for_label }}">{{ field.label }}</label>
                   {{ field }}
-                  {% for error in field.errors %}<p class="mt-1 text-xs text-error">{{ error }}</p>{% endfor %}
+                  {% for error in field.errors %}<p class="mt-1 text-xs font-medium text-red-600">{{ error }}</p>{% endfor %}
                 </div>
               {% endfor %}
-              <button class="w-full bg-tertiary-container text-on-tertiary font-label-caps text-label-caps uppercase py-3 hover:bg-primary-container" type="submit">Kirim Miles</button>
+              <button class="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800" type="submit">
+                Kirim Miles
+                <span class="material-symbols-outlined text-lg">arrow_forward</span>
+              </button>
             </form>
           </div>
         </aside>
 
-        <section class="lg:col-span-8">
-          <div class="flex items-center justify-between mb-4 border-b border-outline-variant pb-2">
-            <h2 class="font-h3 text-h3 text-tertiary-container">Riwayat Transfer</h2>
-            <div class="flex gap-2 text-xs font-semibold">
-              <a class="px-3 py-2 border {% if not selected_type %}bg-tertiary-container text-on-tertiary border-tertiary-container{% else %}bg-white text-tertiary-container border-outline-variant{% endif %}" href="{% url 'main:member_transfer_miles' %}">Semua</a>
-              <a class="px-3 py-2 border {% if selected_type == 'Kirim' %}bg-tertiary-container text-on-tertiary border-tertiary-container{% else %}bg-white text-tertiary-container border-outline-variant{% endif %}" href="?tipe=Kirim">Kirim</a>
-              <a class="px-3 py-2 border {% if selected_type == 'Terima' %}bg-tertiary-container text-on-tertiary border-tertiary-container{% else %}bg-white text-tertiary-container border-outline-variant{% endif %}" href="?tipe=Terima">Terima</a>
-            </div>
-          </div>
-          <div class="bg-surface-container-lowest border border-outline-variant overflow-hidden">
-            <div class="grid grid-cols-12 gap-4 p-4 border-b border-outline-variant bg-tertiary-container text-on-tertiary">
-              <div class="col-span-2 font-label-caps text-label-caps uppercase">Tipe</div>
-              <div class="col-span-4 font-label-caps text-label-caps uppercase">Member</div>
-              <div class="col-span-3 font-label-caps text-label-caps uppercase">Tanggal</div>
-              <div class="col-span-3 font-label-caps text-label-caps uppercase text-right">Miles</div>
-            </div>
-            {% for transfer in transfers %}
-              <div class="grid grid-cols-12 gap-4 p-4 border-b border-surface-variant hover:bg-surface-container-low transition-colors items-center">
-                <div class="col-span-2"><span class="inline-flex px-2.5 py-1 text-xs font-semibold {% if transfer.tipe == 'Terima' %}bg-emerald-100 text-emerald-800{% else %}bg-surface-container text-on-surface{% endif %}">{{ transfer.tipe }}</span></div>
-                <div class="col-span-4">
-                  <div class="font-body-md font-medium text-tertiary-container">{{ transfer.nama_member }}</div>
-                  <div class="font-data-tabular text-xs text-on-surface-variant">{{ transfer.email_member }}</div>
-                  {% if transfer.catatan %}<div class="text-xs text-on-surface-variant mt-1">{{ transfer.catatan }}</div>{% endif %}
-                </div>
-                <div class="col-span-3 font-data-tabular text-data-tabular text-on-surface-variant">{{ transfer.time_stamp|date:"d M Y H:i" }}</div>
-                <div class="col-span-3 font-data-tabular text-data-tabular font-semibold text-right {% if transfer.tipe == 'Terima' %}text-emerald-700{% else %}text-error{% endif %}">{% if transfer.tipe == 'Terima' %}+{% else %}-{% endif %}{{ transfer.jumlah }}</div>
+        <section class="min-w-0 lg:col-span-8">
+          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+            <div class="flex flex-col gap-4 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 class="text-lg font-extrabold text-slate-900">Riwayat Transfer</h2>
+                <p class="mt-1 text-sm text-slate-500">Semua pengiriman dan penerimaan miles.</p>
               </div>
-            {% empty %}
-              <div class="p-10 text-center text-on-surface-variant">Belum ada transfer.</div>
-            {% endfor %}
+              <div class="flex gap-2 text-xs font-bold">
+                <a class="rounded-lg border px-3 py-2 {% if not selected_type %}border-amber-200 bg-amber-50 text-amber-700{% else %}border-slate-200 bg-white text-slate-600 hover:bg-slate-50{% endif %}" href="{{ member_transfer_miles_url }}">Semua</a>
+                <a class="rounded-lg border px-3 py-2 {% if selected_type == 'Kirim' %}border-amber-200 bg-amber-50 text-amber-700{% else %}border-slate-200 bg-white text-slate-600 hover:bg-slate-50{% endif %}" href="?tipe=Kirim">Kirim</a>
+                <a class="rounded-lg border px-3 py-2 {% if selected_type == 'Terima' %}border-amber-200 bg-amber-50 text-amber-700{% else %}border-slate-200 bg-white text-slate-600 hover:bg-slate-50{% endif %}" href="?tipe=Terima">Terima</a>
+              </div>
+            </div>
+
+            <div class="max-w-full overflow-x-auto">
+              <table class="w-full min-w-[640px] text-left">
+                <thead class="bg-slate-50 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                  <tr>
+                    <th class="px-6 py-4">Tipe</th>
+                    <th class="px-6 py-4">Member</th>
+                    <th class="px-6 py-4">Tanggal</th>
+                    <th class="px-6 py-4 text-right">Miles</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                  {% for transfer in transfers %}
+                    <tr class="transition-colors hover:bg-slate-50/80">
+                      <td class="px-6 py-4">
+                        <span class="inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase {% if transfer.tipe == 'Terima' %}border-emerald-100 bg-emerald-50 text-emerald-700{% else %}border-slate-200 bg-slate-50 text-slate-700{% endif %}">{{ transfer.tipe }}</span>
+                      </td>
+                      <td class="px-6 py-4">
+                        <div class="font-bold text-slate-900">{{ transfer.nama_member }}</div>
+                        <div class="mt-1 text-xs text-slate-500">{{ transfer.email_member }}</div>
+                        {% if transfer.catatan %}<div class="mt-1 text-xs italic text-slate-400">{{ transfer.catatan }}</div>{% endif %}
+                      </td>
+                      <td class="px-6 py-4 text-slate-500">{{ transfer.time_stamp|date:"d M Y H:i" }}</td>
+                      <td class="px-6 py-4 text-right font-extrabold {% if transfer.tipe == 'Terima' %}text-emerald-700{% else %}text-red-600{% endif %}">{% if transfer.tipe == 'Terima' %}+{% else %}-{% endif %}{{ transfer.jumlah }}</td>
+                    </tr>
+                  {% empty %}
+                    <tr><td class="px-6 py-12 text-center text-sm text-slate-500" colspan="4">Belum ada transfer.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
       </div>

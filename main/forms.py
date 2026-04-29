@@ -51,7 +51,11 @@ class ClaimForm(forms.Form):
         self.fields["bandara_asal"].choices = empty_airport + list(airport_choices or [])
         self.fields["bandara_tujuan"].choices = empty_airport + list(airport_choices or [])
         for field in self.fields.values():
-            field.widget.attrs.update({"class": "w-full rounded border border-slate-300 px-3 py-2"})
+            field.widget.attrs.update(
+                {
+                    "class": "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-amber-500 focus:ring-amber-500"
+                }
+            )
 
     def clean_flight_number(self):
         return self.cleaned_data["flight_number"].strip().upper()
@@ -84,7 +88,11 @@ class TransferMilesForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            field.widget.attrs.update({"class": "w-full rounded border border-slate-300 px-3 py-2"})
+            field.widget.attrs.update(
+                {
+                    "class": "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-amber-500 focus:ring-amber-500"
+                }
+            )
 
     def clean_email_penerima(self):
         return self.cleaned_data["email_penerima"].strip().lower()

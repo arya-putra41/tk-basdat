@@ -3,17 +3,17 @@
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center">
           <h1 class="text-3xl font-bold italic text-white">
-            <a href="{% url 'main:show_main' %}">AeroMiles</a>
+            <a href="{{ home_url|default:'/' }}">AeroMiles</a>
           </h1>
         </div>
         
         <!-- Desktop Navigation -->
         {% if user.is_authenticated %}
         <div class="hidden md:flex items-center space-x-8">
-          <a href="{% url 'main:show_main' %}" class="text-gray-100 hover:text-white font-medium transition-colors">
+          <a href="{{ home_url|default:'/' }}" class="text-gray-100 hover:text-white font-medium transition-colors">
             Home
           </a>
-          <a href="{% url 'main:member_claims' %}" class="text-gray-100 hover:text-white font-medium transition-colors">
+          <a href="{{ member_claims_url|default:'/member/klaim-miles/' }}" class="text-gray-100 hover:text-white font-medium transition-colors">
             Klaim Miles
           </a>
         </div>
@@ -26,7 +26,7 @@
               <div class="text-sm font-medium text-gray-100">{{ name|default:user.email }}</div>
               <div class="text-xs text-gray-500">{{ npm|default:"Student" }} - {{ class|default:"Class" }}</div>
             </div>
-            <a href="{% url 'main:logout' %}" class="text-red-200 hover:text-red-100 font-medium transition-colors">
+            <a href="{{ logout_url|default:'/logout/' }}" class="text-red-200 hover:text-red-100 font-medium transition-colors">
               Logout
             </a>
           {% else %}
@@ -58,10 +58,10 @@
         <!-- Mobile Navigation Links -->
         {% if user.is_authenticated %}
         <div class="space-y-1">
-          <a href="{% url 'main:show_main' %}" class="block text-gray-600 hover:text-gray-900 font-medium py-3 transition-colors">
+          <a href="{{ home_url|default:'/' }}" class="block text-gray-600 hover:text-gray-900 font-medium py-3 transition-colors">
             Home
           </a>
-          <a href="{% url 'main:member_claims' %}" class="block text-gray-600 hover:text-gray-900 font-medium py-3 transition-colors">
+          <a href="{{ member_claims_url|default:'/member/klaim-miles/' }}" class="block text-gray-600 hover:text-gray-900 font-medium py-3 transition-colors">
             Klaim Miles
           </a>
         </div>
@@ -74,7 +74,7 @@
               <div class="font-medium text-gray-900">{{ name|default:user.email }}</div>
               <div class="text-sm text-gray-500">{{ npm|default:"Student" }} - {{ class|default:"Class" }}</div>
             </div>
-            <a href="{% url 'main:logout' %}" class="block text-red-600 hover:text-red-700 font-medium py-3 transition-colors">
+            <a href="{{ logout_url|default:'/logout/' }}" class="block text-red-600 hover:text-red-700 font-medium py-3 transition-colors">
               Logout
             </a>
           {% else %}
