@@ -10,6 +10,8 @@ from .views import (
     show_main,
     staff_claim_review,
     staff_claims,
+    staff_manage_partner,
+    staff_manage_reward
 )
 from . import api_views
 
@@ -26,6 +28,8 @@ urlpatterns = [
     path('member/transfer-miles/', member_transfer_miles, name='member_transfer_miles'),
     path('staf/kelola-klaim/', staff_claims, name='staff_claims'),
     path('staf/kelola-klaim/<int:claim_id>/review/', staff_claim_review, name='staff_claim_review'),
+    path('staf/kelola-hadiah/', staff_manage_reward, name='staff_manage_reward'),
+    path('staf/kelola-mitra/', staff_manage_partner, name='staff_manage_partner'),
     path('api/member/klaim', api_views.api_member_claims, name='api_member_claims'),
     path('api/member/klaim/<int:claim_id>', api_views.api_member_claim_detail, name='api_member_claim_detail'),
     path('api/staf/klaim', api_views.api_staff_claims, name='api_staff_claims'),

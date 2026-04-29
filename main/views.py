@@ -9,7 +9,7 @@ from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 
-from .forms import AeroMilesUserCreationForm, ClaimForm, ReviewClaimForm, TransferMilesForm
+from .forms import AeroMilesUserCreationForm, ClaimForm, ReviewClaimForm, TransferMilesForm, RewardForm, PartnerForm
 from . import aeromiles_services as services
 
 # Create your views here.
@@ -192,6 +192,97 @@ def member_transfer_miles(request):
         "selected_type": transfer_type,
     }
     return render(request, "member_transfer_miles.html", context)
+
+# Render reward management page (logic not yet added)
+def staff_manage_reward(request):
+    # rewards = services.list_rewards()
+    reward_form = RewardForm
+    rewards = (
+        {
+            'kode_hadiah': 'RWD-001',
+            'nama_hadiah': 'Business Class Upgrade',
+            'miles': 1000,
+            'deskripsi': 'Experience better flight amenities',
+            'valid_start_date': '2026-01-01',
+            'program_end': '2027-01-01',
+            'nama_penyedia': 'Garuda Indonesia',
+            'id_penyedia': 1
+        },
+        {
+            'kode_hadiah': 'RWD-002',
+            'nama_hadiah': 'Extra Checked Bags',
+            'miles': 2000,
+            'deskripsi': '1 extra checked bag (max. 30 kg)',
+            'valid_start_date': '2026-01-01',
+            'program_end': '2027-01-01',
+            'nama_penyedia': 'Lion Air',
+            'id_penyedia': 2
+        },
+        {
+            'kode_hadiah': 'RWD-003',
+            'nama_hadiah': 'Standard Room',
+            'miles': 3000,
+            'deskripsi': 'Trade in your miles for a free hotel room (1 night)',
+            'valid_start_date': '2026-01-01',
+            'program_end': '2027-01-01',
+            'nama_penyedia': 'Asri Hotels',
+            'id_penyedia': 3
+        },
+        {
+            'kode_hadiah': 'RWD-004',
+            'nama_hadiah': 'Upgrade 1 Car Class',
+            'miles': 4000,
+            'deskripsi': 'Get a larger or more practical rental car',
+            'valid_start_date': '2026-01-01',
+            'program_end': '2027-01-01',
+            'nama_penyedia': 'Easy Rent-A-Car',
+            'id_penyedia': 4
+        },
+    )
+    context = {
+        'rewards': rewards,
+        'form': reward_form
+    }
+    return render(request, 'staff_reward_management.html', context)
+
+def delete_reward(request, reward_code):
+    try:
+        services.delete_reward(reward_code)
+        messages.success(request, "Reward berhasil dihapus.")
+    except services.DomainError as exc:
+        messages.error(request, exc.message)
+    return redirect("main:staff_manage_reward")
+
+# Render partner management page (logic not yet added)
+def staff_manage_partner(request):
+    partner_form = PartnerForm
+    partners = (
+        {
+            'id_penyedia': 3,
+            'email_mitra': 'partner@asrihotels.com',
+            'nama_mitra': 'Asri Hotels',
+            'tanggal_kerjasama': '2026-01-01'
+        },
+        {
+            'id_penyedia': 4,
+            'email_mitra': 'partner@easyrentacar.com',
+            'nama_mitra': 'Easy Rent-a-Car',
+            'tanggal_kerjasama': '2026-01-01'
+        },
+    )
+    context = {
+        'form': partner_form,
+        'partners': partners
+    }
+    return render(request, 'staff_partner_management.html', context)
+
+def delete_partner(request, email):
+    try:
+        services.delete_reward(email)
+        messages.success(request, "Reward berhasil dihapus.")
+    except services.DomainError as exc:
+        messages.error(request, exc.message)
+    return redirect("main:staff_manage_reward")
 
 # Registrasi user
 def register(request):

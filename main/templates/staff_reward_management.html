@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+
+{% block meta %}
+<title>AeroMiles - Kelola Hadiah</title>
+{% endblock meta %}
+
+{% block content %}
+<div class="min-h-screen bg-surface text-on-surface font-body-md antialiased md:flex">
+    <nav class="hidden md:flex h-screen w-64 border-r border-slate-800 flex-col bg-slate-900 fixed left-0 top-0 p-4 z-20">
+        <div class="mb-8 px-4 pb-4 border-b border-slate-800">
+            <a href="{% url 'main:show_main' %}" class="text-xl font-bold tracking-widest text-white uppercase">AeroMiles</a>
+            <p class="text-sm tracking-tight font-medium text-slate-400 mt-1">Executive Loyalty</p>
+        </div>
+        <ul class="flex-1 space-y-1">
+            <li><a class="flex items-center px-4 py-3 text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/30" href="{% url 'main:show_main' %}"><span class="material-symbols-outlined mr-3">dashboard</span>Dashboard</a></li>
+            <li><a class="flex items-center px-4 py-3 text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/30" href="{% url 'main:member_claims' %}"><span class="material-symbols-outlined mr-3" style="font-variation-settings: 'FILL' 1;">people</span>Kelola Member</a></li>
+            <li><a class="flex items-center px-4 py-3 text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/30" href="{% url 'main:staff_claims' %}"><span class="material-symbols-outlined mr-3">content_paste</span>Kelola Klaim</a></li>
+            <li><a class="flex items-center px-4 py-3 text-sm font-medium text-amber-500 bg-slate-800/50 border-r-4 border-amber-500" href="{% url 'main:staff_manage_reward' %}"><span class="material-symbols-outlined mr-3">shopping_basket</span>Kelola Hadiah</a></li>
+            <li><a class="flex items-center px-4 py-3 text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/30" href="{% url 'main:staff_manage_partner' %}"><span class="material-symbols-outlined mr-3">business</span>Kelola Mitra</a></li>
+            <li><a class="flex items-center px-4 py-3 text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/30" href="{% url 'main:member_transfer_miles' %}"><span class="material-symbols-outlined mr-3">receipt_long</span>Laporan Transaksi</a></li>
+        </ul>
+        <div class="pt-4 border-t border-slate-800">
+            <a class="flex items-center px-4 py-3 text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/30" href="{% url 'main:logout' %}"><span class="material-symbols-outlined mr-3">logout</span>Keluar</a>
+        </div>
+    </nav>
+
+    <main class="flex-1 md:ml-64 min-h-screen">
+        <header class="flex justify-between items-center px-6 md:px-10 w-full h-20 sticky top-0 z-30 bg-surface/80 backdrop-blur-md">
+            <div class="flex items-center gap-4">
+                <h1 class="font-headline font-bold text-2xl text-on-surface">Kelola Hadiah</h1>
+                <span class="bg-primary-container text-on-primary px-3 py-1 font-label text-xs font-semibold tracking-wide uppercase">{{ staff.kode_maskapai|default:"ALL" }}</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:block text-right">
+                    <p class="font-body font-semibold text-sm text-on-surface">{{ staff_name|default:request.user.email }}</p>
+                    <p class="font-body text-xs text-on-surface-variant">Staf Operasional</p>
+                </div>
+                <div class="w-10 h-10 bg-surface-container-high border border-surface-container flex items-center justify-center font-bold text-tertiary-container">{{ staff_name|first|default:"S" }}</div>
+            </div>
+        </header>
+
+        <div class="p-6 md:p-8 max-w-container-max mx-auto w-full">
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div class="border px-4 py-3 text-sm {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-red-200 bg-red-50 text-red-800{% endif %}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <button id="toggleHadiahBtn" class="mb-4 flex items-center justify-between w-full bg-surface-container p-4 border border-outline-variant">
+                <div class="flex text-left gap-3">
+                    <div class="w-10 h-10 bg-tertiary-container text-on-tertiary flex items-center justify-center"><span class="material-symbols-outlined">add_circle</span></div>
+                    <div>
+                        <h2 class="font-h3 text-h3 text-tertiary-container">Hadiah Baru</h2>
+                        <p class="text-sm text-on-surface-variant">Masukkan detail hadiah.</p>
+                    </div>
+                </div>
+                <span id="arrowIcon" class="material-symbols-outlined transition-transform">expand_more</span>
+            </button>
+
+            <aside id="formContainer" class="mb-4 hidden">
+                <div class="bg-surface-container-lowest border border-outline-variant p-6 sticky top-24">
+                    <form method="post" class="space-y-4">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}<div class="border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{ form.non_field_errors }}</div>{% endif %}
+                        {% for field in form %}
+                        <div>
+                            <label class="block font-label-caps text-label-caps text-on-surface-variant uppercase mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}<p class="mt-1 text-xs text-error">{{ error }}</p>{% endfor %}
+                        </div>
+                        {% endfor %}
+                        <button class="w-full bg-tertiary-container text-on-tertiary font-label-caps text-label-caps uppercase py-3 hover:bg-primary-container" type="submit">Daftarkan Hadiah</button>
+                    </form>
+                </div>
+            </aside>
+
+            <section class="xl:w-4/5 mx-auto">
+                <div class="flex items-center justify-between mb-4 border-b border-outline-variant pb-2">
+                    <h2 class="font-h3 text-h3 text-tertiary-container">Daftar Hadiah</h2>
+                    <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                        <a class="px-3 py-2 border {% if not selected_status %}bg-tertiary-container text-on-tertiary border-tertiary-container{% else %}bg-white text-tertiary-container border-outline-variant{% endif %}" href="{% url 'main:staff_manage_reward' %}">Semua</a>
+                        <select class="text-[10px] py-0.5 border border-slate-300 rounded bg-white focus:outline-none">
+                            <option class="italic text-slate-200" value="" selected>Pilih penyedia...</option>
+                            <option value="1">Garuda Indonesia</option>
+                            <option value="2">Lion Air</option>
+                            <option value="3">Asri Hotels</option>
+                            <option value="4">Easy Rent-A-Car</option>
+                        </select>
+                        <a class="px-3 py-2 border {% if selected_status == 'Aktif' %}bg-tertiary-container text-on-tertiary border-tertiary-container{% else %}bg-white text-tertiary-container border-outline-variant{% endif %}" href="?status=Aktif">Aktif</a>
+                        <a class="px-3 py-2 border {% if selected_status == 'Kedaluwarsa' %}bg-tertiary-container text-on-tertiary border-tertiary-container{% else %}bg-white text-tertiary-container border-outline-variant{% endif %}" href="?status=Kedaluwarsa">Kedaluwarsa</a>
+                    </div>
+                </div>
+            </section>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                <section class="xl:col-span-12">
+                    <div class="bg-surface-container-lowest border border-outline-variant overflow-hidden">
+                        <div class="grid grid-cols-12 gap-4 p-4 border-b border-outline-variant bg-tertiary-container text-on-tertiary">
+                            <div class="col-span-2 font-label-caps text-label-caps uppercase">Hadiah</div>
+                            <div class="col-span-1 font-label-caps text-label-caps uppercase">Miles</div>
+                            <div class="col-span-3 font-label-caps text-label-caps uppercase">Deskripsi</div>
+                            <div class="col-span-2 font-label-caps text-label-caps uppercase">Periode</div>
+                            <div class="col-span-2 font-label-caps text-label-caps uppercase">Penyedia</div>
+                            <div class="col-span-2 font-label-caps text-label-caps uppercase text-right">Aksi</div>
+                        </div>
+                        {% for reward in rewards %}
+                        <div class="grid grid-cols-12 gap-4 p-4 border-b border-surface-variant hover:bg-surface-container-low transition-colors items-center">
+                            <div class="col-span-2 flex items-center min-w-0">
+                                <div class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center mr-3 text-on-surface-variant"><span class="material-symbols-outlined text-[18px]">shopping_basket</span></div>
+                                <div class="min-w-0">
+                                    <div class="font-data-tabular text-data-tabular text-tertiary-container font-semibold">{{ reward.nama_hadiah }}</div>
+                                    <div class="text-xs text-on-surface-variant truncate">{{ reward.kode_hadiah }}</div>
+                                </div>
+                            </div>
+                            <div class="col-span-1 font-bold text-data-tabular">{{ reward.miles }}</div>
+                            <div class="col-span-3 text-sm text-on-surface-variant">
+                                {% if reward.deskripsi == '' %}
+                                <span class="italic">Tidak ada deskripsi</span>
+                                {% else %}
+                                {{ reward.deskripsi|truncatechars:100 }}
+                                {% endif %}
+                            </div>
+                            <div class="col-span-2">{{ reward.valid_start_date }} - {{ reward.program_end }}</div>
+                            <div class="col-span-2">{{ reward.nama_penyedia }}</div>
+                            <div class="col-span-2 flex justify-end gap-2">
+                                <a class="px-3 py-2 border border-outline-variant text-xs font-semibold hover:bg-surface-container cursor-pointer" onclick="openEditModal()">Edit</a>
+
+                                <form id="delete-form-{{ reward.kode_hadiah }}" method="post" action="">
+                                    {% csrf_token %}
+                                    <button type="button" onclick="confirmDelete('{{ reward.kode_hadiah }}', '{{ reward.nama_hadiah }}')" class="px-3 py-2 border border-red-200 text-xs font-semibold text-error hover:bg-red-50 cursor-pointer">
+                                        Hapus
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="p-10 text-center text-on-surface-variant">Belum ada hadiah yang terdaftar.</div>
+                        {% endfor %}
+                    </div>
+                </section>
+            </div>
+
+            <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden p-4">
+                <div class="bg-white rounded w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+                    <div class="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
+                        <div>
+                            <h3 class="text-lg font-bold text-tertiary-container">Edit Data Hadiah</h3>
+                            <p class="text-xs text-on-surface-variant">ID Hadiah: <span class="font-mono">RWD-001</span></p>
+                        </div>
+                        <button onclick="closeModal()" class="material-symbols-outlined text-on-surface-variant hover:text-error">close</button>
+                    </div>
+
+                    <form class="p-6 space-y-4 overflow-y-auto">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="col-span-2">
+                                <label class="block text-[10px] font-bold uppercase text-on-surface-variant mb-1">Nama Hadiah</label>
+                                <input type="text" value="Business Class Upgrade" class="w-full border border-outline-variant px-3 py-2 rounded focus:ring-1 focus:ring-tertiary-container outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-on-surface-variant mb-1">Jumlah Miles</label>
+                                <input type="number" value="1000" class="w-full border border-outline-variant px-3 py-2 rounded outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-on-surface-variant mb-1">Penyedia (Union Type)</label>
+                                <select class="w-full border border-outline-variant px-3 py-2 rounded outline-none bg-surface-container-lowest">
+                                    <option value="1" selected>Garuda Indonesia (Maskapai)</option>
+                                    <option value="2">Lion Air (Maskapai)</option>
+                                    <option value="3">Asri Hotels (Mitra)</option>
+                                    <option value="4">Easy Rent-A-Car (Mitra)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-on-surface-variant mb-1">Tanggal Mulai</label>
+                                <input type="date" value="2026-01-01" class="w-full border border-outline-variant px-3 py-2 rounded outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-on-surface-variant mb-1">Tanggal Berakhir</label>
+                                <input type="date" value="2027-01-01" class="w-full border border-outline-variant px-3 py-2 rounded outline-none">
+                            </div>
+
+                            <div class="col-span-2">
+                                <label class="block text-[10px] font-bold uppercase text-on-surface-variant mb-1">Deskripsi</label>
+                                <textarea class="w-full border border-outline-variant px-3 py-2 rounded outline-none h-24">
+Experience better flight amenities </textarea>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="p-4 border-t border-outline-variant bg-surface-container-low flex justify-end gap-3">
+                        <button onclick="closeModal()" class="px-4 py-2 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-high transition-colors uppercase">Batal</button>
+                        <button class="px-6 py-2 text-sm font-bold bg-tertiary-container text-on-tertiary uppercase tracking-wider hover:shadow-lg transition-all">Simpan Perubahan</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="deleteModal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center hidden p-4 backdrop-blur-sm">
+                <div class="bg-white rounded w-full max-w-md shadow-2xl overflow-hidden border-t-4 border-error">
+
+                    <div class="p-6">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 bg-red-100 text-error rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-3xl">warning</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-on-surface">Hapus Hadiah?</h3>
+                                <p class="text-sm text-on-surface-variant">Tindakan ini tidak dapat dibatalkan.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-surface-container-low p-3 rounded border border-outline-variant mb-6">
+                            <p class="text-xs text-on-surface-variant uppercase font-bold mb-1">Hadiah yang akan dihapus:</p>
+                            <p id="deleteItemName" class="text-sm font-semibold text-tertiary-container italic"></p>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <button id="confirmDeleteBtn" class="w-full bg-error text-black font-label-caps text-xs py-3 hover:bg-red-700 hover:text-white transition-colors uppercase tracking-widest">
+                                Ya, Hapus Hadiah
+                            </button>
+                            <button onclick="closeDeleteModal()" class="w-full py-2 text-xs font-semibold text-on-surface-variant hover:bg-surface-container transition-colors uppercase">
+                                Batalkan
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    let formToSubmit = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleBtn = document.getElementById('toggleHadiahBtn');
+        const formContainer = document.getElementById('formContainer');
+        const arrowIcon = document.getElementById('arrowIcon');
+
+        toggleBtn.addEventListener('click', function () {
+            // 1. Toggle visibility form
+            formContainer.classList.toggle('hidden');
+
+            // 2. Animasi rotasi icon (opsional)
+            if (formContainer.classList.contains('hidden')) {
+                arrowIcon.style.transform = 'rotate(0deg)';
+            } else {
+                arrowIcon.style.transform = 'rotate(180deg)';
+            }
+        });
+    });
+
+    function openEditModal(id) {
+        document.getElementById('editModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent scroll
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    function confirmDelete(id, nama) {
+        // 1. Simpan referensi form yang akan dihapus
+        formToSubmit = document.getElementById('delete-form-' + id);
+
+        // 2. Masukkan nama hadiah ke dalam teks modal
+        document.getElementById('deleteItemName').innerText = nama;
+
+        // 3. Tampilkan modal
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        formToSubmit = null;
+    }
+
+    // Eksekusi submit form saat tombol konfirmasi di modal diklik
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
+        if (formToSubmit) {
+            formToSubmit.submit();
+        }
+    });
+</script>
+{% endblock content %}

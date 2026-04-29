@@ -1,5 +1,5 @@
 from django.db import IntegrityError, connection, transaction
-
+import datetime
 
 class DomainError(Exception):
     def __init__(self, message, code=400):
@@ -380,3 +380,117 @@ def create_transfer(sender_email, receiver_email, amount, note=""):
             )
             timestamp = cursor.fetchone()[0]
             return {"award_miles_baru": new_balance, "timestamp": timestamp}
+        
+def list_rewards():
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT r.kode_hadiah, r.nama, r.miles, r.deskripsi, r.valid_start_date, r.program_end, COALESCE(m.nama_maskapai, mt.nama_mitra) AS nama_penyedia
+            FROM hadiah r JOIN penyedia p ON r.id_penyedia = p.id
+            LEFT JOIN maskapai m ON p.id = m.id_penyedia
+            LEFT JOIN mitra mt on p.id = mt.id_penyedia
+            """
+        )
+        return _dict_fetchall(cursor)
+    
+def get_reward(reward_code):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT h.kode_hadiah, h.nama_hadiah, h.miles, h.deskripsi, h.valid_start_date, h.program_end, h.id_penyedia
+            FROM hadiah h
+            WHERE h.kode_hadiah = %s
+            """,
+            [reward_code],
+        )
+        return _dict_fetchone(cursor)
+    
+def update_reward(reward_code, data):
+    reward = get_reward(reward_code)
+    if not reward:
+        raise DomainError("Hadiah tidak ditemukan.", code=404)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE hadiah
+                SET nama_hadiah = %s, miles = %d, deskripsi = %s, valid_start_date = %s, program_end = %s, id_penyedia = %s
+                WHERE kode_hadiah = %s
+                """,
+                [
+                    data['nama_hadiah'],
+                    data['miles'],
+                    data['deskripsi'],
+                    data['valid_start_date'],
+                    data['program_end'],
+                    data['id_penyedia'],
+                    reward_code
+                ],
+            )
+    except IntegrityError as exc:
+        raise DomainError("Data duplikat atau data referensi tidak valid.") from exc
+    
+def delete_reward(reward_code):
+    reward = get_reward(reward_code)
+    if not reward:
+        raise DomainError("Hadiah tidak ditemukan.", code=404)
+    if reward["program_end"] < datetime.datetime.now():
+        raise DomainError("Hadiah hanya dapat dihapus ketika masa berlakunya telah selesai.", code=403)
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "DELETE FROM hadiah WHERE kode_hadiah = %s",
+            [reward_code],
+        )
+
+def list_partners():
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT mt.email_mitra, mt.id_penyedia, mt.nama_mitra, mt.tanggal_kerjasama
+            FROM mitra mt
+            """
+        )
+        return _dict_fetchall(cursor)
+    
+def get_partner(email):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT mt.email_mitra, mt.id_penyedia, mt.nama_mitra, mt.tanggal_kerjasama
+            FROM mitra mt
+            WHERE mt.email_mitra = %s
+            """,
+            [email],
+        )
+        return _dict_fetchone(cursor)
+    
+def update_partner(email, data):
+    partner = get_partner(email)
+    if not partner:
+        raise DomainError("Mitra tidak ditemukan.", code=404)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE mitra
+                SET nama_mitra = %s, tanggal_kerjasama = %s
+                WHERE email_mitra = %s
+                """,
+                [
+                    data['nama_mitra'],
+                    data['tanggal_kerjasama'],
+                    email
+                ],
+            )
+    except IntegrityError as exc:
+        raise DomainError("Data duplikat atau data referensi tidak valid.") from exc
+    
+def delete_partner(email):
+    partner = get_partner(email)
+    if not partner:
+        raise DomainError("Mitra tidak ditemukan.", code=404)
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "DELETE FROM mitra WHERE email_mitra = %s",
+            [email],
+        )

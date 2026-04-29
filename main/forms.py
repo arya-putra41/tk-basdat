@@ -111,3 +111,89 @@ class ReviewClaimForm(forms.Form):
         if status == "Ditolak" and not cleaned.get("alasan_penolakan", "").strip():
             self.add_error("alasan_penolakan", "Alasan penolakan wajib diisi.")
         return cleaned
+
+class RewardForm(forms.Form):
+    nama_hadiah = forms.CharField(
+        label="Nama Hadiah", 
+        max_length=100,
+        widget=forms.TextInput(attrs={"placeholder": "Contoh: Tiket Jakarta-Bali"})
+    )
+    miles = forms.IntegerField(
+        label="Jumlah Miles", 
+        min_value=1
+    )
+    deskripsi = forms.CharField(
+        label="Deskripsi", 
+        required=False, 
+        widget=forms.Textarea(attrs={"rows": 3})
+    )
+    valid_start_date = forms.DateField(
+        label="Tanggal Mulai",
+        initial=timezone.now,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    program_end = forms.DateField(
+        label="Program Berakhir",
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    # id_penyedia menggunakan ChoiceField karena ini adalah Union Type 
+    # (Pilihan Maskapai/Mitra)
+    id_penyedia = forms.ChoiceField(label="Penyedia Hadiah")
+
+    def __init__(self, *args, penyedia_choices=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Inisialisasi pilihan penyedia (Maskapai/Mitra) dari View
+        self.fields["id_penyedia"].choices = [("", "Pilih Penyedia")] + list(penyedia_choices or [])
+        for field in self.fields.values():
+            field.widget.attrs.update({
+                "class": "w-full rounded border border-slate-300 px-3 py-2"
+            })
+
+    def clean_nama_hadiah(self):
+        return self.cleaned_data["nama_hadiah"].strip()
+
+    def clean(self):
+        cleaned = super().clean()
+        start_date = cleaned.get("valid_start_date")
+        end_date = cleaned.get("program_end")
+
+        # Validasi logika tanggal: End date tidak boleh sebelum Start date
+        if start_date and end_date:
+            if end_date < start_date:
+                raise forms.ValidationError(
+                    "Tanggal program berakhir tidak boleh lebih awal dari tanggal mulai."
+                )
+        return cleaned
+
+class PartnerForm(forms.Form):
+    # Field sesuai tabel MITRA
+    nama_mitra = forms.CharField(
+        label="Nama Mitra",
+        max_length=100,
+        widget=forms.TextInput(attrs={"placeholder": "Contoh: Asri Hotels & Resort"})
+    )
+    email_mitra = forms.EmailField(
+        label="Email Official Mitra",
+        max_length=100,
+        widget=forms.EmailInput(attrs={"placeholder": "partnership@mitra.com"})
+    )
+    tanggal_kerja_sama = forms.DateField(
+        label="Tanggal Mulai Kerja Sama",
+        initial=timezone.now,
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Konsistensi styling Tailwind AeroMiles
+        for field in self.fields.values():
+            field.widget.attrs.update({
+                "class": "w-full rounded border border-slate-300 px-3 py-2 focus:ring-1 focus:ring-tertiary-container outline-none"
+            })
+
+    def clean_email_mitra(self):
+        # Memastikan email disimpan dalam format lowercase untuk konsistensi DB
+        return self.cleaned_data["email_mitra"].strip().lower()
+
+    def clean_nama_mitra(self):
+        return self.cleaned_data["nama_mitra"].strip()
